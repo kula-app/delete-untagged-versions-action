@@ -38,6 +38,7 @@ export async function removeUntaggedPackageVersions({
   core.info(`Finding versions for package '${packageName}' in repo '${owner}/${repo}'`);
   let versions: OctokitOpenApiTypes.components['schemas']['package-version'][];
   if (isPackageOwnedByUser) {
+    core.debug(`Package is owned by user`);
     let response = await octokit.packages.getAllPackageVersionsForPackageOwnedByUser({
       username: owner,
       repo: repo,
@@ -46,6 +47,7 @@ export async function removeUntaggedPackageVersions({
     });
     versions = response.data;
   } else {
+    core.debug(`Package is owned by organization`);
     let response = await octokit.packages.getAllPackageVersionsForPackageOwnedByOrg({
       org: owner,
       repo: repo,
