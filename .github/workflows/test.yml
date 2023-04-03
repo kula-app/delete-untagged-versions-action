@@ -1,4 +1,4 @@
-name: "units-test"
+name: 'units-test'
 on:
   pull_request:
   push:
@@ -8,18 +8,27 @@ on:
 
 jobs:
   # unit tests
-  units:
+  run-unit-tests:
+    name: Tests
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - run: npm ci
-    - run: npm test
+      - uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: .node-version
+      - run: yarn install
+      - run: yarn test
+        env:
+          INPUT_TOKEN: ${{ github.token }}
+          INPUT_DRY_RUN: true
 
   # test action works running from the graph
-  test:
+  test-action:
+    name: Test GitHub Action
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: ./
-      with:
-        milliseconds: 1000
+      - uses: actions/checkout@v3
+      - uses: ./
+        with:
+          repository: ${{ github.repository }}
