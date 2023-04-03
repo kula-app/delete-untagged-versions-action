@@ -11,27 +11,59 @@ jobs:
   run-unit-tests:
     name: Tests
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     steps:
       - uses: actions/checkout@v3
       - name: Setup node
         uses: actions/setup-node@v3
         with:
           node-version-file: .node-version
+
+      - # Authenticate with the GitHub Container Registry to generate an untagged version
+        name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          logout: false
+      - name: Create new package version
+        uses: docker/build-push-action@v4
+        with:
+          context: test
+          labels: run-${{ github.run_number }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ github.repository }}/ci-test
+      - name: Update input file to create new layer
+        run: date > test/input.txt
+      - name: Update package version to produce untagged layer
+        uses: docker/build-push-action@v4
+        with:
+          context: test
+          labels: run-${{ github.run_number }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ github.repository }}/ci-test
+
       - run: yarn install
       - run: yarn test
         env:
+          INPUT_REPOSITORY: ${{ github.repository }}
+          INPUT_PACKAGE: ci-test
           INPUT_TOKEN: ${{ github.token }}
-          INPUT_DRY_RUN: true
-          # Use the publicly available kula-app/containers, as it most likely has a package available
-          INPUT_REPOSITORY: kula-app/containers
-          INPUT_PACKAGE: containers/node-rbenv
 
   # test action works running from the graph
   test-action:
     name: Test GitHub Action
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     steps:
       - uses: actions/checkout@v3
       - uses: ./
         with:
           repository: ${{ github.repository }}
+          package: ci-test
+          token: ${{ github.token }}
