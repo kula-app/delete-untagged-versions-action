@@ -27,8 +27,8 @@ export async function removeUntaggedPackageVersions({
     },
   });
   // Find the packages
-  const r = await octokit.packages.listPackagesForUser({
-    username: owner,
+  const r = await octokit.packages.listPackagesForOrganization({
+    org: owner,
     repo: repo,
     package_type: 'container',
   });
