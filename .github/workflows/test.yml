@@ -22,6 +22,9 @@ jobs:
         env:
           INPUT_TOKEN: ${{ github.token }}
           INPUT_DRY_RUN: true
+          # Use the publicly available kula-app/containers, as it most likely has a package available
+          INPUT_REPOSITORY: kula-app/containers
+          INPUT_PACKAGE: containers/node-rbenv
 
   # test action works running from the graph
   test-action:
