@@ -1,0 +1,13 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:base"],
+  "stabilityDays": 3,
+  "timezone": "Europe/Vienna",
+  "prCreation": "not-pending",
+  "packageRules": [
+    {
+      "matchDepTypes": ["devDependencies"],
+      "prPriority": -1
+    }
+  ]
+}
