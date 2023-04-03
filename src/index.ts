@@ -15,6 +15,7 @@ async function run() {
     });
     const dryRun = core.getBooleanInput('dry_run');
     const packageName = core.getInput('package', { required: true });
+    const isPersonalAccount = core.getBooleanInput('personal_account', { required: true });
 
     // -- Perform Tasks --
     await removeUntaggedPackageVersions({
@@ -23,6 +24,7 @@ async function run() {
       repo,
       dryRun,
       packageName,
+      isPackageOwnedByUser: isPersonalAccount,
     });
   } catch (error: any) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access

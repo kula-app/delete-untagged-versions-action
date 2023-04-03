@@ -11,6 +11,10 @@ inputs:
   package:
     description: Package name that contains the untagged versions you want to delete
     required: true
+  personal_account:
+    description: Set this to 'true' if the package is owned by a a personal account.
+    required: false
+    default: 'false'
   dry_run:
     description: Only find untagged versions but do not delete anything
     default: 'false'
