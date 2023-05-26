@@ -35,7 +35,7 @@ export async function removeUntaggedPackageVersions({
     });
     core.startGroup(`Packages found in organization:`);
     for (const p of packages) {
-      core.debug(` - ${p.name}`);
+      core.info(` - ${p.name}`);
     }
     core.endGroup();
   } else {
@@ -44,45 +44,55 @@ export async function removeUntaggedPackageVersions({
       repo: repo,
       package_type: 'container',
     });
-    core.debug(`Found the following packages:`);
     core.startGroup(`Packages found in user package:`);
     for (const p of packages) {
-      core.debug(` - ${p.name}`);
+      core.info(` - ${p.name}`);
     }
     core.endGroup();
   }
 
   // Find the package versions
   core.info(`Finding versions for package '${packageName}' in repo '${owner}/${repo}'`);
-  let versions: OctokitOpenApiTypes.components['schemas']['package-version'][];
   if (isPackageOwnedByUser) {
-    core.debug(`Package is owned by user`);
-    let response = await octokit.packages.getAllPackageVersionsForPackageOwnedByUser({
-      username: owner,
-      repo: repo,
-      package_type: 'container',
-      package_name: packageName,
-    });
-    versions = response.data;
+    core.info(`Package is owned by user`);
+    for await (const response of octokit.paginate.iterator(
+      octokit.packages.getAllPackageVersionsForPackageOwnedByUser,
+      {
+        username: owner,
+        repo: repo,
+        package_type: 'container',
+        package_name: packageName,
+      },
+    )) {
+      await iteratePackageVersions(octokit, response.data, owner, repo, packageName, dryRun, isPackageOwnedByUser);
+    }
   } else {
-    core.debug(`Package is owned by organization`);
-    let response = await octokit.packages.getAllPackageVersionsForPackageOwnedByOrg({
+    core.info(`Package is owned by organization`);
+    for await (const response of octokit.paginate.iterator(octokit.packages.getAllPackageVersionsForPackageOwnedByOrg, {
       org: owner,
       repo: repo,
       package_type: 'container',
       package_name: packageName,
-    });
-    response.data[0].metadata;
-    versions = response.data;
+    })) {
+      await iteratePackageVersions(octokit, response.data, owner, repo, packageName, dryRun, isPackageOwnedByUser);
+    }
   }
-  core.info(`Found ${versions.length} package versions`);
+}
 
-  // Iterate the versions and the associated tags
+async function iteratePackageVersions(
+  octokit: Octokit,
+  versions: OctokitOpenApiTypes.components['schemas']['package-version'][],
+  owner: string,
+  repo: string,
+  packageName: string,
+  dryRun: boolean,
+  isPackageOwnedByUser: boolean,
+) {
+  core.info(`Iterating ${versions.length} package versions`);
   for (const version of versions) {
     const tags = version.metadata?.container?.tags;
     if (!tags || tags.length === 0) {
       core.info(`Package version '${version.id}' has no tags associated`);
-      const { id } = version;
       try {
         if (dryRun) {
           core.warning(`Dry running is enabled, not deleting package version '${version.id}'`);
