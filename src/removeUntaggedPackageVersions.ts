@@ -64,7 +64,17 @@ export async function removeUntaggedPackageVersions({
         package_name: packageName,
       },
     )) {
-      await iteratePackageVersions(octokit, response.data, owner, packageName, dryRun, isPackageOwnedByUser);
+      await iteratePackageVersions(
+        octokit,
+        response.data.map((version) => ({
+          tags: version.metadata?.container?.tags,
+          id: version.id,
+        })),
+        owner,
+        packageName,
+        dryRun,
+        isPackageOwnedByUser,
+      );
     }
   } else {
     core.info(`Package is owned by organization`);
@@ -74,14 +84,27 @@ export async function removeUntaggedPackageVersions({
       package_type: 'container',
       package_name: packageName,
     })) {
-      await iteratePackageVersions(octokit, response.data, owner, packageName, dryRun, isPackageOwnedByUser);
+      await iteratePackageVersions(
+        octokit,
+        response.data.map((version) => ({
+          tags: version.metadata?.container?.tags,
+          id: version.id,
+        })),
+        owner,
+        packageName,
+        dryRun,
+        isPackageOwnedByUser,
+      );
     }
   }
 }
 
 async function iteratePackageVersions(
   octokit: Octokit,
-  versions: OctokitOpenApiTypes.components['schemas']['package-version'][],
+  versions: {
+    tags?: {}[];
+    id: number;
+  }[],
   owner: string,
   packageName: string,
   dryRun: boolean,
@@ -89,8 +112,7 @@ async function iteratePackageVersions(
 ) {
   core.info(`Iterating ${versions.length} package versions`);
   for (const version of versions) {
-    const tags = version.metadata?.container?.tags;
-    if (!tags || tags.length === 0) {
+    if (!version.tags || version.tags.length === 0) {
       core.info(`Package version '${version.id}' has no tags associated`);
       try {
         if (dryRun) {
