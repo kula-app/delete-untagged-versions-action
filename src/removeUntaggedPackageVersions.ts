@@ -33,8 +33,7 @@ export async function removeUntaggedPackageVersions({
       repo: repo,
       package_type: 'container',
     });
-    core.debug(`Found the following packages:`);
-    core.startGroup(`Packages found in user package`);
+    core.startGroup(`Packages found in organization:`);
     for (const p of packages) {
       core.debug(` - ${p.name}`);
     }
@@ -46,7 +45,7 @@ export async function removeUntaggedPackageVersions({
       package_type: 'container',
     });
     core.debug(`Found the following packages:`);
-    core.startGroup(`Packages found in user package`);
+    core.startGroup(`Packages found in user package:`);
     for (const p of packages) {
       core.debug(` - ${p.name}`);
     }
