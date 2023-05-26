@@ -64,7 +64,7 @@ export async function removeUntaggedPackageVersions({
         package_name: packageName,
       },
     )) {
-      await iteratePackageVersions(octokit, response.data, owner, repo, packageName, dryRun, isPackageOwnedByUser);
+      await iteratePackageVersions(octokit, response.data, owner, packageName, dryRun, isPackageOwnedByUser);
     }
   } else {
     core.info(`Package is owned by organization`);
@@ -74,7 +74,7 @@ export async function removeUntaggedPackageVersions({
       package_type: 'container',
       package_name: packageName,
     })) {
-      await iteratePackageVersions(octokit, response.data, owner, repo, packageName, dryRun, isPackageOwnedByUser);
+      await iteratePackageVersions(octokit, response.data, owner, packageName, dryRun, isPackageOwnedByUser);
     }
   }
 }
@@ -83,7 +83,6 @@ async function iteratePackageVersions(
   octokit: Octokit,
   versions: OctokitOpenApiTypes.components['schemas']['package-version'][],
   owner: string,
-  repo: string,
   packageName: string,
   dryRun: boolean,
   isPackageOwnedByUser: boolean,
