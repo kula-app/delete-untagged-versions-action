@@ -27,12 +27,31 @@ export async function removeUntaggedPackageVersions({
     },
   });
   // Find the packages
-  const r = await octokit.packages.listPackagesForOrganization({
-    org: owner,
-    repo: repo,
-    package_type: 'container',
-  });
-  console.log(r);
+  if (isPackageOwnedByUser) {
+    const { data: packages } = await octokit.packages.listPackagesForUser({
+      username: owner,
+      repo: repo,
+      package_type: 'container',
+    });
+    core.debug(`Found the following packages:`);
+    core.startGroup(`Packages found in user package`);
+    for (const p of packages) {
+      core.debug(` - ${p.name}`);
+    }
+    core.endGroup();
+  } else {
+    const { data: packages } = await octokit.packages.listPackagesForOrganization({
+      org: owner,
+      repo: repo,
+      package_type: 'container',
+    });
+    core.debug(`Found the following packages:`);
+    core.startGroup(`Packages found in user package`);
+    for (const p of packages) {
+      core.debug(` - ${p.name}`);
+    }
+    core.endGroup();
+  }
 
   // Find the package versions
   core.info(`Finding versions for package '${packageName}' in repo '${owner}/${repo}'`);
