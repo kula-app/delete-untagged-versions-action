@@ -101,7 +101,6 @@ async function iteratePackageVersions(
           if (isPackageOwnedByUser) {
             await octokit.packages.deletePackageVersionForUser({
               username: owner,
-              repo: repo,
               package_type: 'container',
               package_name: packageName,
               package_version_id: version.id,
@@ -109,7 +108,6 @@ async function iteratePackageVersions(
           } else {
             await octokit.packages.deletePackageVersionForOrg({
               org: owner,
-              repo: repo,
               package_type: 'container',
               package_name: packageName,
               package_version_id: version.id,
